@@ -1,48 +1,28 @@
-import axios, { AxiosResponse } from "axios";
+import { Attributes } from "./Attributes";
+import { Collection } from "./Collection";
+import { Eventing } from "./Eventing";
+import { Model } from "./Model";
+import { Sync } from "./Sync";
 
-interface UserProps {
+export interface UserProps {
   id?: number;
   name?: string;
   age?: number;
 }
 
-type Callback = () => void;
+const rootUrl = "http://localhost:3000/users";
 
-export class User {
-  events: { [key: string]: Callback[] } = {};
-  constructor(private data: UserProps) {}
-  get(propName: string): number | string {
-    return this.data[propName];
+export class User extends Model<UserProps> {
+  static buildUser(attrs: UserProps) {
+    return new User(
+      new Attributes<UserProps>(attrs),
+      new Sync<UserProps>(rootUrl),
+      new Eventing()
+    );
   }
-  set(update: UserProps): void {
-    Object.assign(this.data, update);
-  }
-  on(eventName: string, callback: Callback): void {
-    if (!this.events[eventName]) {
-      this.events[eventName] = [];
-    }
-    this.events[eventName].push(callback);
-  }
-  trigger(eventName: string): void {
-    if (this.events[eventName]) {
-      this.events[eventName].forEach((callback) => {
-        callback();
-      });
-    }
-  }
-  fetch(): void {
-    axios
-      .get(`http://localhost:3000/users/${this.get("id")}`)
-      .then((response: AxiosResponse) => {
-        this.set(response.data);
-      });
-  }
-  save(): void {
-    const id = this.get("id");
-    if (id) {
-      axios.put(`http://localhost:3000/users/${id}`, this.data);
-    } else {
-      axios.post("http://localhost:3000/users", this.data);
-    }
+  static buildUserCollection(): Collection<User, UserProps> {
+    return new Collection<User, UserProps>(rootUrl, (attrs: UserProps) =>
+      User.buildUser(attrs)
+    );
   }
 }

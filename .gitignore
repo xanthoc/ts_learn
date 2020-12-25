@@ -3,4 +3,4 @@ build
 *.bak
 .cache
 dist
-*.html
+report.html
