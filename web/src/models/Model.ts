@@ -42,12 +42,13 @@ export class Model<T extends HasId> {
   }
   fetch(): void {
     const id = this.attributes.get("id");
-    if (!id) {
+    if (id) {
+      this.sync.fetch(id).then((response: AxiosResponse<T>) => {
+        this.set(response.data);
+      });
+    } else {
       throw new Error("Can't fetch without id");
     }
-    this.sync.fetch(id).then((response: AxiosResponse<T>) => {
-      this.set(response.data);
-    });
   }
   save(): void {
     this.sync
